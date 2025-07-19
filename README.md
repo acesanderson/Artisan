@@ -337,15 +337,16 @@ artisan/
 │   ├── test_generation.py
 │   ├── docstring.py
 │   └── logging.py
+├── logs/
+│   └── logging_config
 ├── prompts/
-│   ├── critique/
-│   ├── test_generation/
-│   ├── docstring/
-│   └── logging/
+│   ├── critique
+│   ├── test_generation
+│   ├── docstring
+│   └── logging
 ├── core/
 │   ├── context_engine.py
-│   ├── prompt_loader.py
-│   └── neovim_interface.py
+│   └── prompt_loader
 └── main.py
 ```
 
