@@ -44,20 +44,21 @@ def determine_scope(filepath: str | Path, line_number: int = 0) -> tuple[Scope, 
     root = find_project_root(filepath)
 
     # filter with conditionals
-    ## if filename contains "__init__.py": "module"
-    if filepath.name == "__init__.py":
-        logger.info(f"File {filepath} is an __init__.py file, returning 'module'.")
-        return "module", ""
+    ## if filepath is a directory, we will be generating README (project scope)
+    if filepath.is_dir():
+        logger.info(f"File {filepath} is a directory, we will be generating README.")
+        line_number = 0
+        return "project", ""
 
     ## if filename contains "README.md" and is in root: "project"
     if filepath.name == "README.md" and filepath.parent == root:
         logger.info(f"File {filepath} is a README.md in the root, returning 'project'.")
         return "project", ""
 
-    ## if filename is the root dir: "project"
-    if filepath == root:
-        logger.info(f"File {filepath} is the root directory, returning 'project'.")
-        return "project", ""
+    ## if filename contains "__init__.py": "module"
+    if filepath.name == "__init__.py":
+        logger.info(f"File {filepath} is an __init__.py file, returning 'module'.")
+        return "module", ""
 
     ## if line_number < 2: "file"
     if line_number < 2:
@@ -116,12 +117,20 @@ def generate_docs(
     assert filepath.exists(), f"File or directory {filepath} does not exist."
     logger.info(f"Generating docs for {filepath} at line {line_number}.")
 
-    # Determine the scope based on the filepath and line number
+    # Determine the scope
+    ## if filepath is a directory, we will be generating README (project scope)
+    ## All other cases, we will determine the scope based on the file and line number
     scope, element_name = determine_scope(filepath, line_number)
     logger.info(f"Determined scope: {scope}")
 
     from Siphon.ingestion.github.flatten_directory import flatten_directory
     from Chain import Model, Chain
+
+    # Get script text
+    if filepath.is_dir():
+        script_text = ""
+    else:
+        script_text = filepath.read_text()
 
     # Get project context
     project_context = flatten_directory(str(find_project_root(filepath)))
@@ -133,7 +142,7 @@ def generate_docs(
     chain = Chain(model=model, prompt=prompt)
     response = chain.run(
         input_variables={
-            "script_text": filepath.read_text(),
+            "script_text": script_text,
             "project_context": project_context,
             "element_name": element_name,
         }
@@ -147,4 +156,4 @@ if __name__ == "__main__":
 
     project_context = project_context.strip()
     # 0 for file, 7 for function, 18 for class
-    d = generate_docs(file_path, project_context, line_number=18)
+    d = generate_docs(file_path, line_number=18)

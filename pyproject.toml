@@ -1,13 +1,24 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
 [project]
 name = "artisan"
 version = "0.1.0"
 description = "Your AI pair programming partner that critiques, tests, and documents your code while you focus on building."
 readme = "README.md"
-requires-python = ">=3.13"
-dependencies = []
+requires-python = ">=3.10"
+dependencies = [
+    "anthropic>=0.58.2",
+    "google-genai>=1.26.0",
+    "instructor>=1.10.0",
+    "jinja2>=3.1.6",
+    "openai>=1.97.0",
+    "pydantic>=2.11.7",
+]
 
 [project.scripts]
-artisan = "artisan.cli.artisan_cli.py:main"
+artisan = "Artisan.cli.artisan_cli:main"
 
 [tool.pytest.ini_options]
 addopts = "-v -s --tb=short --no-header --showlocals --pdb -x"
@@ -16,4 +27,4 @@ log_cli_level = "INFO"
 
 # Hatchling configuration (replaces setuptools.packages.find)
 [tool.hatch.build.targets.wheel]
-packages = ["Chain"]
+packages = ["Artisan"]
