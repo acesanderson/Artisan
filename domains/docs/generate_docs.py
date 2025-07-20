@@ -5,6 +5,7 @@ Entry point for docs generation.
 from Chain.prompt.prompt_loader import PromptLoader
 from Artisan.main.find_project_root import find_project_root
 from Artisan.logs.logging_config import configure_logging
+from Siphon.ingestion.github.flatten_directory import flatten_directory
 from pathlib import Path
 from typing import Literal
 import logging
@@ -19,8 +20,7 @@ logger = configure_logging(
 Scope = Literal["project", "module", "file", "class", "function"]
 dir_path = Path(__file__).parent
 prompt_dir = dir_path / "prompts"
-prompt_keys = list(Scope.__args__)
-prompt_loader = PromptLoader(base_dir=prompt_dir, keys=prompt_keys)
+prompt_loader = PromptLoader(base_dir=prompt_dir)
 preferred_model = "claude"
 
 
@@ -102,7 +102,6 @@ def determine_scope(filepath: str | Path, line_number: int = 0) -> tuple[Scope, 
 
 def generate_docs(
     filepath: str | Path,
-    project_context: str,
     line_number: int = 0,
 ):
     """
@@ -110,18 +109,22 @@ def generate_docs(
 
     Args:
         filepath (str | Path): Path to the file or directory.
-        project_context (str): Context of the project (XML file for entire project code).
-        scope (Scope): Scope of the documentation to generate.
+        line_number (int): Optional line number to start from (default is 0).
     """
+    # Validate filepath
     filepath = Path(filepath).resolve()
     assert filepath.exists(), f"File or directory {filepath} does not exist."
-
     logger.info(f"Generating docs for {filepath} at line {line_number}.")
+
     # Determine the scope based on the filepath and line number
     scope, element_name = determine_scope(filepath, line_number)
     logger.info(f"Determined scope: {scope}")
 
+    from Siphon.ingestion.github.flatten_directory import flatten_directory
     from Chain import Model, Chain
+
+    # Get project context
+    project_context = flatten_directory(str(find_project_root(filepath)))
 
     # Get prompt from prompt loader
     prompt = prompt_loader[scope]

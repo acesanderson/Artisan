@@ -2,10 +2,15 @@
 CLI entry point for Artisan project.
 """
 
-import argparse
+import argparse, logging
 from pathlib import Path
-from Siphon.ingestion.github.flatten_directory import flatten_directory
-from Artisan.main.find_project_root import find_project_root
+from Artisan.domains.docs.generate_docs import generate_docs
+from Artisan.logs.logging_config import configure_logging
+
+logger = configure_logging(
+    level=logging.INFO,
+    console=True,
+)
 
 
 def main():
@@ -18,22 +23,29 @@ def main():
         type=str,
         help="Path to the python file.",
     )
+    # Add optional argument for line number
     parser.add_argument(
-        "command",
-        choices=["d", "docs", "t", "tests", "c", "consult"],
-        default="d",
+        "--line",
+        type=int,
         nargs="?",
-        help="Command to execute: generate, test, or deploy.",
+        default=0,
+        help="Line number to start from (default: 0).",
     )
+    # parser.add_argument(
+    #     "command",
+    #     choices=["d", "docs", "t", "tests", "c", "consult"],
+    #     default="d",
+    #     nargs="?",
+    #     help="Command to execute: generate, test, or deploy.",
+    # )
     args = parser.parse_args()
     # Validate filepath
     filepath = Path(args.filepath)
     assert filepath.exists(), f"File {filepath} does not exist."
-    root = find_project_root(filepath)
-    assert root.exists(), f"Project root {root} does not exist."
-    print(f"Project root found at: {root}")
-    context = flatten_directory(str(root))
-    print("\n" + context)
+    # Run generate_docs
+    logger.info(f"Generating docs for {filepath} at line {args.line}.")
+    docs = generate_docs(filepath, line_number=args.line)
+    print(docs)
 
 
 if __name__ == "__main__":
