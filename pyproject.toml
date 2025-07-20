@@ -1,0 +1,18 @@
+[project]
+name = "artisan"
+version = "0.1.0"
+description = "Your AI pair programming partner that critiques, tests, and documents your code while you focus on building."
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = []
+
+[project.scripts]
+
+[tool.pytest.ini_options]
+addopts = "-v -s --tb=short --no-header --showlocals --pdb -x"
+log_cli = true
+log_cli_level = "INFO"
+
+# Hatchling configuration (replaces setuptools.packages.find)
+[tool.hatch.build.targets.wheel]
+packages = ["Chain"]
